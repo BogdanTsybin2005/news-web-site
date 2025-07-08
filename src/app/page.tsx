@@ -5,14 +5,15 @@ import { fetchNews } from '@/lib/news'
 
 
 type PageProps = {
-  searchParams: Record<string, string | string[] | undefined>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 export default async function Home({ searchParams }: PageProps) {
-  const categoryParam = searchParams.category
-  const items = await fetchNews()
-  const category = typeof categoryParam === 'string' ? categoryParam : 'all'
-  const categories = ['all', ...Array.from(new Set(items.map((item) => item.category.toLowerCase())))]
+  const params = await searchParams;
+  const categoryParam = params.category;
+  const items = await fetchNews();
+  const category = typeof categoryParam === 'string' ? categoryParam : 'all';
+  const categories = ['all', ...Array.from(new Set(items.map((item) => item.category.toLowerCase())))];
 
   return (
     <>

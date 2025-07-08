@@ -9,12 +9,7 @@ export function Header({ categories }: { categories: string[] }) {
     const pathname = usePathname()
     const params = useSearchParams()
     const currentCategory = params.get('category') || 'all'
-
-    const createLink = (c: string) =>
-        `${pathname}?${new URLSearchParams({
-        ...Object.fromEntries(params),
-        category: c === 'all' ? '' : c,
-        }).toString()}`.replace(/\?$/, '')
+    const createLink = (c: string) => `${pathname}?${new URLSearchParams({...Object.fromEntries(params),category: c === 'all' ? '' : c,}).toString()}`.replace(/\?$/, '');
 
     return (
         <header className="sticky top-0 z-50 border-b border-black/10 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md">
@@ -25,13 +20,13 @@ export function Header({ categories }: { categories: string[] }) {
                 <nav className="hidden gap-4 sm:flex">
                     {categories.map((cat) => (
                         <Link
-                        key={cat}
-                        href={createLink(cat)}
-                        className={`capitalize text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400 ${
-                            currentCategory === cat ? 'text-indigo-600 dark:text-indigo-400 underline' : 'text-gray-700 dark:text-gray-300'
-                        }`}
+                            key={cat}
+                            href={createLink(cat)}
+                            className={`capitalize text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400 ${
+                                currentCategory === cat ? 'text-indigo-600 dark:text-indigo-400 underline' : 'text-gray-700 dark:text-gray-300'
+                            }`}
                         >
-                        {cat}
+                            {cat}
                         </Link>
                     ))}
                 </nav>

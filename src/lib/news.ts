@@ -25,23 +25,28 @@ function slugify(title: string): string {
 }
 
 export async function fetchNews(): Promise<NewsItem[]> {
-    const url = process.env.NEWS_API_URL;
-    if (!url) return getLocalNews();
+    const key = process.env.NEWSDATA_API_KEY
+    if (!key) return getLocalNews()
+
+    const params = new URLSearchParams({ apikey: key, country: process.env.NEWSDATA_COUNTRY || 'us' })
+    const url = `https://newsdata.io/api/1/latest?${params}`
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Failed');
-        const data = (await res.json()) as { articles?: unknown[] };
-        if (!Array.isArray(data.articles)) return getLocalNews();
-        return data.articles.map((a, idx) => {
-            const article = a as Record<string, unknown>;
+        const res = await fetch(url)
+        if (!res.ok) throw new Error('Failed')
+        const data = (await res.json()) as { results?: unknown[] }
+        if (!Array.isArray(data.results)) return getLocalNews()
+
+        return data.results.map((item, idx) => {
+            const article = item as Record<string, unknown>
+            const cat = article.category as string[] | string | undefined;
             return {
-                id: (article.url as string) ?? idx.toString(),
+                id: (article.article_id as string) ?? idx.toString(),
                 title: (article.title as string) ?? 'No title',
                 slug: slugify((article.title as string) ?? idx.toString()),
                 description: (article.description as string) ?? '',
                 content: (article.content as string) ?? '',
-                image: (article.urlToImage as string) ?? '/vercel.svg',
-                category: (article.source as { name?: string })?.name ?? 'general',
+                image: (article.image_url as string) ?? '/vercel.svg',
+                category: Array.isArray(cat) ? (cat[0] ?? 'general') : (cat ?? 'general'),
             }
         })
     } catch {
