@@ -1,3 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
+
+
+
 export type NewsItem = {
     id: string;
     title: string;
@@ -8,70 +12,75 @@ export type NewsItem = {
     category: string;
 };
 
-let cachedLocal: NewsItem[] | null = null;
-async function getLocalNews(): Promise<NewsItem[]> {
-    if (!cachedLocal) {
-        const mod = await import('../data/news');
-        cachedLocal = mod.news as unknown as NewsItem[];
-    }
-    return cachedLocal;
-}
+type ApiArticle = {
+    source: { name: string };
+    title: string;
+    description: string;
+    content: string;
+    url: string;
+    urlToImage: string;
+};
+
+let cachedNews: NewsItem[] | null = null;
 
 function slugify(title: string): string {
-    return title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 }
 
 export async function fetchNews(): Promise<NewsItem[]> {
+    if (cachedNews) return cachedNews;
+
     const key = process.env.NEWS_API_KEY;
-    if (!key) return getLocalNews();
+    const country = process.env.NEWS_API_COUNTRY || 'us';
+
+    if (!key) {
+        console.error('❌ NEWS_API_KEY отсутствует в .env');
+        return [];
+    }
 
     const urls = [
-        new URL('https://newsdata.io/api/1/latest'),
-        new URL('https://newsdata.io/api/1/latest'),
-    ]
+        new URL('https://newsapi.org/v2/everything?q=apple&from=2025-07-07&sortBy=popularity'),
+        new URL('https://newsapi.org/v2/everything?q=tesla&from=2025-06-08&sortBy=publishedAt'),
+        new URL(`https://newsapi.org/v2/top-headlines?country=${country}&category=business`),
+        new URL('https://newsapi.org/v2/top-headlines?sources=techcrunch'),
+        new URL('https://newsapi.org/v2/everything?domains=wsj.com'),
+    ];
 
-    urls[0].search = new URLSearchParams({
-        apikey: key,
-        country: process.env.NEWSDATA_COUNTRY || 'us',
-        prioritydomain: 'top',
-    }).toString()
+    urls.forEach((url) => url.searchParams.set('apiKey', key));
 
-    urls[1].search = new URLSearchParams({
-        apikey: key,
-        q: 'electric vehicles OR sustainability',
-        domainurl: 'news.google.com',
-    }).toString();
-    
     try {
-        const responses = await Promise.all(
-            urls.map((url) => fetch(url.toString()).catch(() => undefined)),
-        )
-        const results: unknown[] = []
-        for (const res of responses) {
-            if (!res?.ok) continue
-            const data = (await res.json()) as { results?: unknown[] }
-            if (Array.isArray(data.results)) results.push(...data.results)
-        }
-        if (results.length === 0) return getLocalNews();
+        const responses = await Promise.all(urls.map((url) => fetch(url.toString()).catch(() => undefined)));
+        const articles: NewsItem[] = [];
 
-        return results.map((item, idx) => {
-            const article = item as Record<string, unknown>
-            const cat = article.category as string[] | string | undefined;
-            return {
-                id: (article.article_id as string) ?? idx.toString(),
-                title: (article.title as string) ?? 'No title',
-                slug: slugify((article.title as string) ?? idx.toString()),
-                description: (article.description as string) ?? '',
-                content: (article.content as string) ?? '',
-                image: (article.image_url as string) ?? '/vercel.svg',
-                category: Array.isArray(cat) ? (cat[0] ?? 'general') : (cat ?? 'general'),
+        for (const res of responses) {
+            if (!res?.ok) continue;
+            const data = await res.json();
+            if (Array.isArray(data.articles)) {
+            const validArticles = data.articles.filter(
+                (item: Partial<ApiArticle>): item is ApiArticle => !!item.title && !!item.url
+            );
+
+            const mapped = validArticles.map((item: ApiArticle): NewsItem => ({
+                id: `${item.url}-${uuidv4()}`,
+                title: item.title,
+                slug: slugify(item.title),
+                description: item.description || '',
+                content: item.content || '',
+                image: item.urlToImage || '/vercel.svg',
+                category: item.source?.name || 'general',
+            }));
+
+            articles.push(...mapped);
             }
-        })
-    } catch {
-        return getLocalNews();
+
+        }
+
+        console.log('✅ Загружено статей:', articles.length);
+        cachedNews = articles;
+        return articles;
+    } catch (err) {
+        console.error('💥 Ошибка при получении новостей:', err);
+        return [];
     }
 }
 

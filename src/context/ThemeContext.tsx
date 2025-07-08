@@ -1,9 +1,8 @@
 'use client'
-import {createContext, useContext, useEffect, useState, ReactNode} from 'react'
-
-
-
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 export type Theme = 'light' | 'dark'
+
+
 
 interface ThemeCtx {
     theme: Theme
@@ -20,20 +19,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         const initial = stored || (prefersDark ? 'dark' : 'light')
         setTheme(initial)
-        document.documentElement.classList.remove('light', 'dark')
-        document.documentElement.classList.add(initial)
+
+        const root = document.documentElement
+        root.classList.remove('light', 'dark')
+        root.classList.add(initial)
     }, [])
 
     const toggle = () => {
         const next = theme === 'dark' ? 'light' : 'dark'
         setTheme(next)
         localStorage.setItem('theme', next)
-        document.documentElement.classList.toggle('dark', next === 'dark')
+
+        const root = document.documentElement
+        root.classList.remove('light', 'dark')
+        root.classList.add(next)
     }
 
-    return (
-        <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>
-    )
+    return <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>
 }
 
 export function useTheme() {
