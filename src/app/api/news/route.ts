@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
-import { news } from '@/data/news'
+import { fetchNews } from '@/lib/news'
 
 
 
-export function GET() {
-    return NextResponse.json(news)
+export async function GET() {
+    const items = await fetchNews()
+    return NextResponse.json(items)
 }

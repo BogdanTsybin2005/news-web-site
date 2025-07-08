@@ -1,38 +1,39 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { Metadata } from 'next'
-import { news } from '@/data/news'
+import { fetchNewsBySlug, fetchNews } from '@/lib/news'
 import { Header } from '@/components/Header'
 
 
 
-interface Params {
-    slug: string
-}
-
-
-export function generateMetadata({ params }: { params: Params }): Metadata {
-    const item = news.find((n) => n.slug === params.slug)
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+    const item = await fetchNewsBySlug(params.slug)
     if (!item) return {}
     return {
-            title: item.title,
-            description: item.description,
-            openGraph: {
-            images: [item.image],
-        },
+        title: item.title,
+        description: item.description,
+        openGraph: { images: [item.image] },
     }
 }
 
-export default function NewsPage({ params }: { params: Params }) {
-    const item = news.find((n) => n.slug === params.slug)
+export default async function NewsPage({ params }: { params: { slug: string } }) {
+    const item = await fetchNewsBySlug(params.slug)
     if (!item) notFound()
+    const all = await fetchNews()
+    const categories = ['all', ...Array.from(new Set(all.map(i => i.category.toLowerCase())))]
+
     return (
         <>
-            <Header />
-            <main className="container mx-auto p-4">
-                <h1 className="text-2xl font-bold mb-4">{item.title}</h1>
-                <Image src={item.image} alt="" width={800} height={600} className="w-full h-80 object-cover mb-4" />
-                <p>{item.content}</p>
+            <Header categories={categories} />
+            <main className="container mx-auto max-w-3xl p-4 space-y-6">
+                <h1 className="text-3xl font-bold">{item.title}</h1>
+                <Image
+                    src={item.image}
+                    alt=""
+                    width={800}
+                    height={600}
+                    className="rounded shadow-md object-cover w-full max-h-[400px]"
+                />
+                <article className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: item.content }} />
             </main>
         </>
     )

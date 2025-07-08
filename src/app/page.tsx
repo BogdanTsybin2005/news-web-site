@@ -1,56 +1,25 @@
-'use client'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useEffect, useState } from 'react'
-import { NewsItem } from '@/data/news'
 import { Header } from '@/components/Header'
-import { useSearchParams } from 'next/navigation'
+import { NewsList } from '@/components/NewsList'
+import { fetchNews } from '@/lib/news'
 
 
+type PageProps = {
+  searchParams: Record<string, string | string[] | undefined>
+}
 
-export default function Home() {
-  const [items, setItems] = useState<NewsItem[]>([])
-  const [search, setSearch] = useState('')
-  const params = useSearchParams()
-  const category = params.get('category') || 'all'
-
-  useEffect(() => {
-    fetch('/api/news')
-      .then((r) => r.json())
-      .then((d: NewsItem[]) => setItems(d))
-  }, [])
-
-  const filtered = items.filter(
-    (n) =>
-      (category === 'all' || n.category === category) &&
-      n.title.toLowerCase().includes(search.toLowerCase())
-  )
+export default async function Home({ searchParams }: PageProps) {
+  const items = await fetchNews()
+  const categoryParam = searchParams?.category
+  const category = typeof categoryParam === 'string' ? categoryParam : 'all'
+  const categories = ['all', ...Array.from(new Set(items.map((item) => item.category.toLowerCase())))]
 
   return (
     <>
-      <Header />
-      <main className="container mx-auto p-4">
-        <input
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="mb-6 w-full p-2 border rounded dark:bg-gray-800"
-        />
-        <div className="grid gap-6 md:grid-cols-2">
-          {filtered.map((item) => (
-            <div key={item.id} className="border rounded-lg overflow-hidden bg-white dark:bg-gray-900">
-              <Image src={item.image} alt="" width={800} height={600} className="w-full h-48 object-cover" />
-              <div className="p-4">
-                <h2 className="text-xl font-semibold mb-2">
-                  <Link href={`/news/${item.slug}`}>{item.title}</Link>
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300">{item.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-       </main>
+      <Header categories={categories} />
+      <main className="mx-auto max-w-6xl space-y-10 px-4 py-8">
+        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white">Последние новости</h1>
+        <NewsList items={items} category={category} />
+      </main>
     </>
   )
 }
