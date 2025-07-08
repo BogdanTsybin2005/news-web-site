@@ -3,14 +3,15 @@ import { NewsList } from '@/components/NewsList'
 import { fetchNews } from '@/lib/news'
 
 
+
 type PageProps = {
   searchParams: Record<string, string | string[] | undefined>
 }
 
 export default async function Home({ searchParams }: PageProps) {
-  const categoryParam = searchParams?.category;
-  const items = await fetchNews();
-  const category = typeof categoryParam === 'string' ? categoryParam : 'all';
+  const categoryParam = searchParams.category
+  const items = await fetchNews()
+  const category = typeof categoryParam === 'string' ? categoryParam : 'all'
   const categories = ['all', ...Array.from(new Set(items.map((item) => item.category.toLowerCase())))]
 
   return (

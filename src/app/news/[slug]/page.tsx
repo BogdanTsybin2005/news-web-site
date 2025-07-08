@@ -2,11 +2,12 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { fetchNewsBySlug, fetchNews } from '@/lib/news'
 import { Header } from '@/components/Header'
-
-
-
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-    const item = await fetchNewsBySlug(params.slug)
+ 
+ 
+ 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params
+    const item = await fetchNewsBySlug(slug)
     if (!item) return {}
     return {
         title: item.title,
@@ -14,13 +15,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
         openGraph: { images: [item.image] },
     }
 }
-
-export default async function NewsPage({ params }: { params: { slug: string } }) {
-    const item = await fetchNewsBySlug(params.slug)
+ 
+export default async function NewsPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params
+    const item = await fetchNewsBySlug(slug)
     if (!item) notFound()
     const all = await fetchNews()
     const categories = ['all', ...Array.from(new Set(all.map(i => i.category.toLowerCase())))]
-
+ 
     return (
         <>
             <Header categories={categories} />
@@ -37,4 +39,4 @@ export default async function NewsPage({ params }: { params: { slug: string } })
             </main>
         </>
     )
-}
+ }
