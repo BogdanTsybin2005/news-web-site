@@ -23,7 +23,7 @@ export default function Home() {
 
   const categories = ['all', ...Array.from(new Set(items.map(item => item.category.toLowerCase())))]
 
-  if (loading) return <div className="text-center mt-10 text-xl">Загрузка новостей...</div>
+  if (loading) return <div className="text-center mt-10 text-xl">loading news..</div>
 
   return (
     <>
