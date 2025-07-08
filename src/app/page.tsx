@@ -8,9 +8,9 @@ type PageProps = {
 }
 
 export default async function Home({ searchParams }: PageProps) {
-  const items = await fetchNews()
-  const categoryParam = searchParams?.category
-  const category = typeof categoryParam === 'string' ? categoryParam : 'all'
+  const categoryParam = searchParams?.category;
+  const items = await fetchNews();
+  const category = typeof categoryParam === 'string' ? categoryParam : 'all';
   const categories = ['all', ...Array.from(new Set(items.map((item) => item.category.toLowerCase())))]
 
   return (
