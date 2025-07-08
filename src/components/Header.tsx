@@ -7,14 +7,22 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '@/context/ThemeContext'
 
 export function Header({ categories }: { categories: string[] }) {
-    const { theme, toggle } = useTheme()
-    const pathname = usePathname()
-    const params = useSearchParams()
-    const currentCategory = params.get('category') || 'all'
+    const { theme, toggle } = useTheme();
+    const pathname = usePathname();
+    const params = useSearchParams();
+    const currentCategory = params.get('category') || 'all';
 
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const [moreOpen, setMoreOpen] = useState(false)
-    const dropdownRef = useRef<HTMLDivElement>(null)
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [moreOpen, setMoreOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+    }, [mobileMenuOpen])
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -37,7 +45,7 @@ export function Header({ categories }: { categories: string[] }) {
     const hiddenCats = categories.slice(maxVisible)
 
     return (
-        <header className="sticky top-0 z-50 border-b border-black/10 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md">
+        <header className="sticky top-0 z-[1000] border-b border-black/10 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md">
             <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
                 <Link
                     href="/"
@@ -78,7 +86,7 @@ export function Header({ categories }: { categories: string[] }) {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50"
+                                className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-[1000]"
                             >
                                 <ul className="max-h-64 overflow-y-auto overflow-x-hidden py-2 scrollbar-thin">
                                 {hiddenCats.map((cat) => (
@@ -126,11 +134,11 @@ export function Header({ categories }: { categories: string[] }) {
                 {mobileMenuOpen && (
                     <motion.nav
                         key="mobile-nav"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.2 }}
-                        className="md:hidden px-4 pb-4 flex flex-wrap gap-2 overflow-y-auto max-h-[70vh]"
+                        initial={{ y: '-100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '-100%' }}
+                        transition={{ duration: 0.3 }}
+                        className="fixed inset-0 z-[1000] md:hidden bg-white dark:bg-gray-950 px-4 py-4 flex flex-wrap gap-2 overflow-y-auto"
                     >
                         {categories.map((cat) => (
                             <Link

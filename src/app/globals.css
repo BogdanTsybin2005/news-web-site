@@ -5,17 +5,27 @@
 @layer base {
     html {
         scroll-behavior: smooth;
+        transition-property: background-color, color;
+        transition-duration: 300ms;
     }
     body {
-            background-color: #fff;
-            color: #1a202c;
-            font-family: 'Inter', sans-serif;
+        background-color: #fff;
+        color: #1a202c;
+        font-family: 'Inter', sans-serif;
+        transition-property: background-color, color;
+        transition-duration: 300ms;
+    }
+    @media (prefers-color-scheme: dark) {
+        html {
+            background-color: #1a202c;
+            color: #f3f4f6;
         }
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #1a202c;
-                color: #f3f4f6;
-            }
+        body {
+            background-color: #1a202c;
+            color: #f3f4f6;
+            transition-property: background-color, color;
+            transition-duration: 300ms;
+        }
     }
     a {
         transition-property: color;
