@@ -4,11 +4,9 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTheme } from '@/context/ThemeContext'
 
 
 export function Header({ categories }: { categories: string[] }) {
-    const { theme, toggle } = useTheme();
     const pathname = usePathname();
     const params = useSearchParams();
     const currentCategory = params.get('category') || 'all';
@@ -121,13 +119,6 @@ export function Header({ categories }: { categories: string[] }) {
                         aria-label="Toggle menu"
                     >
                         {mobileMenuOpen ? '✖️' : '☰'}
-                    </button>
-                    <button
-                        onClick={toggle}
-                        aria-label="Toggle Theme"
-                        className="text-xl transition hover:rotate-12"
-                    >
-                        {theme === 'dark' ? '🌙' : '☀️'}
                     </button>
                     </div>
                 </div>
