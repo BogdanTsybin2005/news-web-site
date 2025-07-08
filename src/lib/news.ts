@@ -25,18 +25,39 @@ function slugify(title: string): string {
 }
 
 export async function fetchNews(): Promise<NewsItem[]> {
-    const key = process.env.NEWSDATA_API_KEY
-    if (!key) return getLocalNews()
+    const key = process.env.NEWS_API_KEY;
+    if (!key) return getLocalNews();
 
-    const params = new URLSearchParams({ apikey: key, country: process.env.NEWSDATA_COUNTRY || 'us' })
-    const url = `https://newsdata.io/api/1/latest?${params}`
+    const urls = [
+        new URL('https://newsdata.io/api/1/latest'),
+        new URL('https://newsdata.io/api/1/latest'),
+    ]
+
+    urls[0].search = new URLSearchParams({
+        apikey: key,
+        country: process.env.NEWSDATA_COUNTRY || 'us',
+        prioritydomain: 'top',
+    }).toString()
+
+    urls[1].search = new URLSearchParams({
+        apikey: key,
+        q: 'electric vehicles OR sustainability',
+        domainurl: 'news.google.com',
+    }).toString();
+    
     try {
-        const res = await fetch(url)
-        if (!res.ok) throw new Error('Failed')
-        const data = (await res.json()) as { results?: unknown[] }
-        if (!Array.isArray(data.results)) return getLocalNews()
+        const responses = await Promise.all(
+            urls.map((url) => fetch(url.toString()).catch(() => undefined)),
+        )
+        const results: unknown[] = []
+        for (const res of responses) {
+            if (!res?.ok) continue
+            const data = (await res.json()) as { results?: unknown[] }
+            if (Array.isArray(data.results)) results.push(...data.results)
+        }
+        if (results.length === 0) return getLocalNews();
 
-        return data.results.map((item, idx) => {
+        return results.map((item, idx) => {
             const article = item as Record<string, unknown>
             const cat = article.category as string[] | string | undefined;
             return {
