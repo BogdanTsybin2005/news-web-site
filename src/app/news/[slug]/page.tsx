@@ -39,4 +39,4 @@ export default async function NewsPage({ params }: { params: Promise<{ slug: str
             </main>
         </>
     )
- }
+}

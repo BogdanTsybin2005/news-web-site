@@ -1,10 +1,11 @@
 'use client'
-
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { NewsItem } from '@/lib/news'
 import { useSearchParams } from 'next/navigation'
+
+
 
 export function NewsList({ items }: { items: NewsItem[] }) {
     const [search, setSearch] = useState('')
