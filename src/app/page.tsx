@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic'
 import { NewsList } from '@/components/NewsList'
-import { fetchNews } from '@/lib/news'
 import { useEffect, useState } from 'react'
 import { NewsItem } from '@/lib/news'
 
@@ -15,10 +14,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchNews().then((data) => {
-      setItems(data)
-      setLoading(false)
-    })
+    fetch('/api/news')
+      .then(res => res.json())
+      .then((data: NewsItem[]) => {
+        setItems(data)
+        setLoading(false)
+      })
   }, [])
 
   const categories = ['all', ...Array.from(new Set(items.map(item => item.category.toLowerCase())))]
